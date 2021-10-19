@@ -1,0 +1,121 @@
+/*
+Austin Mestayer
+Sudoku Validator
+CSC 4103
+13 October 2021
+*/
+
+//file upload 10/18/2021 20:48
+
+import java.io.*;
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class sudoku {
+
+    private static int[][] arr = new int[9][9];  //input array
+    private static boolean valid = true;
+
+    public static void main(String[] args) throws IOException {
+        System.out.print("Please type location of your file: ");
+        File file = fileInput();
+        Scanner fileScanner = new Scanner(file);
+        
+        //2d array assigner
+        {
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    arr[i][j] = fileScanner.nextInt();
+                }
+            }
+        }
+
+        //1d horizontal array assigner and checker
+        horizontalChecker();
+        //1d vertical array assigner and checker
+        verticalChecker();
+
+        if(valid)
+        System.out.println("Valid Solution.");
+    }
+
+    //file intake
+    public static File fileInput() throws FileNotFoundException {
+        boolean exit = false;
+        while(exit == false) {
+            Scanner keyboard = new Scanner(System.in);
+            String fileName = keyboard.next();
+            File file = new File(fileName);
+
+            Scanner fileChecker = new Scanner(file);
+            if (fileChecker.hasNextInt()) {
+                return file;
+            } else if (!fileChecker.hasNextInt()) {
+                System.out.println("Invalid input, type != integer");
+                System.out.println("Please re-enter file directory:");
+            }
+        }
+        return null;
+    }
+
+    //horizontal array checker
+    public static void horizontalChecker(){
+
+        int[] horizontal = new int[9];
+        int tracker = 1;
+        for (int j = 0; j < 9; j++){
+            for (int i = 0; i < 9; i++) {
+                horizontal[i] = arr[j][i];
+            }
+            Arrays.sort(horizontal);
+            checker(horizontal, tracker,"Row");
+            tracker++;
+        }
+
+    }
+
+    //vertical array checker
+    public static void verticalChecker(){
+        int[] vertical = new int[9];
+        int tracker = 1;
+
+        for(int j = 0; j < 9; j++) {
+            for (int i = 0; i < 9; i++) {
+                vertical[i] = arr[i][j];
+            }
+            Arrays.sort(vertical);
+            checker(vertical, tracker, "Column");
+            tracker++;
+        }
+    }
+
+    public static void quadrantChecker(){
+
+        int[] quadrant = new int[9];
+        int tracker = 1;
+        for (int j = 0; j < 3; j++){
+            for (int i = 0; i < 3; i++) {
+                quadrant[i] = arr[j][i];
+            }
+            Arrays.sort(quadrant);
+            checker(quadrant, tracker,"Row");
+            tracker++;
+        }
+
+
+    }
+    public static void checker(int[] arr, int loc, String o){
+
+        boolean check = true;
+        do {
+            for (int i = 0; i < 9; i++) {
+                if (arr[i] != i + 1) {
+                    System.out.println(o + " " + loc + ", Invalid");
+                    valid = false;
+                    return;
+                }
+                check = false;
+            }
+        } while (check);
+    }
+}
