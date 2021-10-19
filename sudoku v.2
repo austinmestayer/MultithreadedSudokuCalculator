@@ -1,0 +1,228 @@
+/*
+Austin Mestayer
+Sudoku Validator
+CSC 4103
+13 October 2021
+*/
+
+//file upload 10/18/2021 20:48
+
+import java.io.*;
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class sudoku {
+
+    private static int[][] arr = new int[9][9];  //input array
+    private static boolean valid = true;
+
+    public static void main(String[] args) throws IOException {
+        System.out.print("Please type location of your file: ");
+        File file = fileInput();
+        Scanner fileScanner = new Scanner(file);
+
+        //assign values from input file into 2-d array
+        {
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    arr[i][j] = fileScanner.nextInt();
+                }
+            }
+        }
+
+
+        //1d horizontal array assigner and checker
+        rowChecker();
+        //1d vertical array assigner and checker
+        columnChecker();
+        //1d quadrant array assigner and checker
+        quadrantChecker();
+
+        if(valid) //only triggered if solution is completely valid
+            System.out.println("Valid Solution.");
+    }
+
+    //file intake
+    public static File fileInput() throws FileNotFoundException { //user input file grabber
+        boolean exit = false;
+        while(exit == false) {
+            Scanner keyboard = new Scanner(System.in); //input grabber
+            String fileName = keyboard.next(); //file location
+            File file = new File(fileName); //input file
+
+            Scanner fileChecker = new Scanner(file); //scanner containing input file
+            if (fileChecker.hasNextInt()) { //checks if input file has integer to validate correct contents
+                return file;
+            } else if (!fileChecker.hasNextInt()) { //failed integer test condition
+                System.out.println("Invalid input, type != integer");
+                System.out.println("Please re-enter file directory:");
+            }
+        }
+        return null;
+    }
+
+    //horizontal array checker
+    public static void rowChecker(){
+
+        int[] row = new int[9]; //row array
+        int tracker = 1; //used for tracking row # for printing
+        
+        for (int j = 0; j < 9; j++){ //assigns x-axis 2d array values
+            for (int i = 0; i < 9; i++) { //assigns y-axis 2d array values
+                row[i] = arr[j][i]; 
+            }
+            Arrays.sort(row); //sorts 'row' in ascending order
+            checker(row, tracker,"Row"); //checks for row order integrity
+            tracker++; //increments tracker
+        }
+
+    }
+
+    //vertical array checker
+    public static void columnChecker(){
+        int[] column = new int[9]; //column array
+        int tracker = 1; //used for tracking row # for printing
+
+        for(int j = 0; j < 9; j++) { //assigns y-value 2d array values
+            for (int i = 0; i < 9; i++) { //assigns x-value 2d array values
+                column[i] = arr[i][j];
+            }
+            Arrays.sort(column); //sorts 'column' in ascending order
+            checker(column, tracker, "Column"); //checks for column order integrity
+            tracker++; //increments tracker
+        }
+    }
+
+    //quadrant array checker
+    public static void quadrantChecker() {
+
+        int[] quadrant = new int[9];
+        int arrLoc = 0;
+        int tracker = 1;
+
+        //top left quadrant
+        for (int j = 0; j < 3; j++) {
+            for (int i = 0; i < 3; i++) {
+                quadrant[arrLoc] = arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        checker(quadrant, tracker, "Quadrant"); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //top middle quadrant
+        for (int j = 0; j < 3; j++) {
+            for (int i = 3; i < 6; i++) {
+                quadrant[arrLoc] = arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        checker(quadrant, tracker, "Quadrant"); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //top right quadrant
+        for (int j = 0; j < 3; j++) {
+            for (int i = 6; i < 9; i++) {
+                quadrant[arrLoc] = arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        checker(quadrant, tracker, "Quadrant"); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //middle left quadrant
+        for (int j = 3; j < 6; j++) {
+            for (int i = 0; i < 3; i++) {
+                quadrant[arrLoc] = arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        checker(quadrant, tracker, "Quadrant"); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //middle middle quadrant
+        for (int j = 3; j < 6; j++) {
+            for (int i = 3; i < 6; i++) {
+                quadrant[arrLoc] = arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        checker(quadrant, tracker, "Quadrant"); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //middle right quadrant
+        for (int j = 3; j < 6; j++) {
+            for (int i = 6; i < 9; i++) {
+                quadrant[arrLoc] = arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        checker(quadrant, tracker, "Quadrant"); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //bottom left quadrant
+        for (int j = 6; j < 9; j++) {
+            for (int i = 0; i < 3; i++) {
+                quadrant[arrLoc] = arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        checker(quadrant, tracker, "Quadrant"); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //bottom middle quadrant
+        for (int j = 6; j < 9; j++) {
+            for (int i = 3; i < 6; i++) {
+                quadrant[arrLoc] = arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        checker(quadrant, tracker, "Quadrant"); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //bottom right quadrant
+        for (int j = 6; j < 9; j++) {
+            for (int i = 6; i < 9; i++) {
+                quadrant[arrLoc] = arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        checker(quadrant, tracker, "Quadrant"); //checks for column order integrity
+
+    }
+
+    //determines if passed array is valid
+    public static void checker(int[] arr, int loc, String o){
+
+        boolean check = true;
+        
+        //do-loop traverses array incrementally checking for correct values
+        //returns location of invalid input
+        do {
+            for (int i = 0; i < 9; i++) {
+                if (arr[i] != i + 1) {
+                    System.out.println(o + " " + loc + ", Invalid");
+                    valid = false;
+                    return;
+                }
+                check = false;
+            }
+        } while (check);
+    }
