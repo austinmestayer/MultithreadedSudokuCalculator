@@ -5,7 +5,7 @@ CSC 4103
 13 October 2021
 */
 
-//file upload 10/18/2021 20:48
+//file upload 10/18/2021 21:07
 
 import java.io.*;
 import java.util.Arrays;
@@ -20,8 +20,8 @@ public class sudoku {
         System.out.print("Please type location of your file: ");
         File file = fileInput();
         Scanner fileScanner = new Scanner(file);
-        
-        //2d array assigner
+
+        //assign values from input file into 2-d array
         {
             for (int i = 0; i < 9; i++) {
                 for (int j = 0; j < 9; j++) {
@@ -31,26 +31,26 @@ public class sudoku {
         }
 
         //1d horizontal array assigner and checker
-        horizontalChecker();
+        rowChecker();
         //1d vertical array assigner and checker
-        verticalChecker();
+        columnChecker();
 
-        if(valid)
-        System.out.println("Valid Solution.");
+        if(valid) //only triggered if solution is completely valid
+            System.out.println("Valid Solution.");
     }
 
     //file intake
-    public static File fileInput() throws FileNotFoundException {
+    public static File fileInput() throws FileNotFoundException { //user input file grabber
         boolean exit = false;
         while(exit == false) {
-            Scanner keyboard = new Scanner(System.in);
-            String fileName = keyboard.next();
-            File file = new File(fileName);
+            Scanner keyboard = new Scanner(System.in); //input grabber
+            String fileName = keyboard.next(); //file location
+            File file = new File(fileName); //input file
 
-            Scanner fileChecker = new Scanner(file);
-            if (fileChecker.hasNextInt()) {
+            Scanner fileChecker = new Scanner(file); //scanner containing input file
+            if (fileChecker.hasNextInt()) { //checks if input file has integer to validate correct contents
                 return file;
-            } else if (!fileChecker.hasNextInt()) {
+            } else if (!fileChecker.hasNextInt()) { //failed integer test condition
                 System.out.println("Invalid input, type != integer");
                 System.out.println("Please re-enter file directory:");
             }
@@ -59,33 +59,34 @@ public class sudoku {
     }
 
     //horizontal array checker
-    public static void horizontalChecker(){
+    public static void rowChecker(){
 
-        int[] horizontal = new int[9];
-        int tracker = 1;
-        for (int j = 0; j < 9; j++){
-            for (int i = 0; i < 9; i++) {
-                horizontal[i] = arr[j][i];
+        int[] row = new int[9]; //row array
+        int tracker = 1; //used for tracking row # for printing
+        
+        for (int j = 0; j < 9; j++){ //assigns x-axis 2d array values
+            for (int i = 0; i < 9; i++) { //assigns y-axis 2d array values
+                row[i] = arr[j][i]; 
             }
-            Arrays.sort(horizontal);
-            checker(horizontal, tracker,"Row");
-            tracker++;
+            Arrays.sort(row); //sorts 'row' in ascending order
+            checker(row, tracker,"Row"); //checks for row order integrity
+            tracker++; //increments tracker
         }
 
     }
 
     //vertical array checker
-    public static void verticalChecker(){
-        int[] vertical = new int[9];
-        int tracker = 1;
+    public static void columnChecker(){
+        int[] column = new int[9]; //column array
+        int tracker = 1; //used for tracking row # for printing
 
-        for(int j = 0; j < 9; j++) {
-            for (int i = 0; i < 9; i++) {
-                vertical[i] = arr[i][j];
+        for(int j = 0; j < 9; j++) { //assigns y-value 2d array values
+            for (int i = 0; i < 9; i++) { //assigns x-value 2d array values
+                column[i] = arr[i][j];
             }
-            Arrays.sort(vertical);
-            checker(vertical, tracker, "Column");
-            tracker++;
+            Arrays.sort(column); //sorts 'column' in ascending order
+            checker(column, tracker, "Column"); //checks for column order integrity
+            tracker++; //increments tracker
         }
     }
 
@@ -107,6 +108,9 @@ public class sudoku {
     public static void checker(int[] arr, int loc, String o){
 
         boolean check = true;
+        
+        //do-loop traverses array incrementally checking for correct values
+        //returns location of invalid input
         do {
             for (int i = 0; i < 9; i++) {
                 if (arr[i] != i + 1) {
