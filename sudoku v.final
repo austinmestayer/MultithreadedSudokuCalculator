@@ -1,0 +1,328 @@
+/*
+Austin Mestayer
+Sudoku Validator
+CSC 4103
+13 October 2021
+*/
+
+//file upload 10/18/2021 20:48
+
+import java.io.*;
+import java.util.Arrays;
+import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicReference;
+
+public class sudoku {
+    public static int[][] arr = new int[9][9];  //input array
+    public static void main(String[] args) throws IOException {
+        AtomicReference<Thread> cas = new AtomicReference<Thread>();
+
+
+        System.out.print("Please type location of your file: ");
+        File file = fileInput();
+        Scanner fileScanner = new Scanner(file);
+
+        //assign values from input file into 2-d array
+        {
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    arr[i][j] = fileScanner.nextInt();
+                }
+            }
+        }
+
+
+   /*     //1d horizontal array assigner and checker
+        row thread1 = new row();
+        //1d vertical array assigner and checker
+        column thread2 = new column();
+        //1d quadrant array assigner and checker
+        subgrid thread3 = new subgrid();
+*/
+        Thread thread1 = new Thread(new row(cas));
+        Thread thread2 = new Thread(new column(cas));
+        Thread thread3 = new Thread(new subgrid(cas));
+        thread1.start();
+        thread2.start();
+        thread3.start();
+
+
+    }
+
+    //file intake
+    public static File fileInput() throws FileNotFoundException {
+        boolean exit = false;
+        while(exit == false) {
+            Scanner keyboard = new Scanner(System.in); //input grabber
+            String fileName = keyboard.next(); //file location
+            File file = new File(fileName); //input file
+
+            Scanner fileChecker = new Scanner(file); //scanner containing input file
+            if (fileChecker.hasNextInt()) { //checks if input file has integer to validate correct contents
+                return file;
+            } else if (!fileChecker.hasNextInt()) { //failed integer test condition
+                System.out.println("Invalid input, type != integer");
+                System.out.println("Please re-enter file directory:");
+            }
+        }
+        return null;
+    }
+
+    //determines if passed array is valid
+    public static void checker(int[] arr, int intLoc, String subLoc, String thread, String subgrid) {
+
+        boolean check = true;
+        boolean isValid = true;
+
+        if (subLoc.equals("Row") || subLoc.equals("Column")) {
+            //do-loop traverses array incrementally checking for correct values
+            //returns location of invalid input
+            do {
+                for (int i = 0; i < 9; i++) {
+                    if (arr[i] != i + 1) {
+                        System.out.println(thread + ", " + subLoc + " " + intLoc + ", Invalid");
+                        isValid = false;
+                        return;
+                    }
+                    check = false;
+                }
+            } while (check);
+
+            if (isValid == true) {
+                System.out.println(thread + ", " + subLoc + " " + intLoc + ", Valid");
+            }
+        }
+        if (subLoc.equals("Sub-Grid")) {
+            //do-loop traverses array incrementally checking for correct values
+            //returns location of invalid input
+            do {
+                for (int i = 0; i < 9; i++) {
+                    if (arr[i] != i + 1) {
+                        System.out.println(thread + ", " + subLoc + " " + subgrid + ", Invalid");
+                        isValid = false;
+                        return;
+                    }
+                    check = false;
+                }
+            } while (check);
+
+            if (isValid == true) {
+                System.out.println(thread + ", " + subLoc + " " + subgrid + ", Valid");
+            }
+        }
+
+    }
+
+}
+
+class spinlock{
+    private AtomicReference<Thread> spinner;
+    spinlock(AtomicReference<Thread> spinner)
+    {
+        this.spinner = spinner;
+    }
+    public void lock() {
+        Thread current = Thread.currentThread();
+        while (!spinner.compareAndSet(null, current)){
+            //wait
+        }
+    }
+
+    public void unlock(){
+        Thread current = Thread.currentThread();
+        spinner.compareAndSet(current, null);
+    }
+
+}
+
+class row implements Runnable {
+    private AtomicReference<Thread> spinner;
+    private spinlock lock;
+    public row(AtomicReference<Thread> spinner) {
+        this.spinner = spinner;
+        this.lock = new spinlock(spinner);
+    }
+
+    //horizontal array checker
+    @Override
+    public void run(){
+        lock.lock();
+        String identifier = "Thread 1";
+        int[] row = new int[9]; //row array
+        int tracker = 1; //used for tracking row # for printing
+
+        for (int j = 0; j < 9; j++){ //assigns x-axis 2d array values
+            for (int i = 0; i < 9; i++) { //assigns y-axis 2d array values
+                row[i] = sudoku.arr[j][i];
+            }
+            Arrays.sort(row); //sorts 'row' in ascending order
+            sudoku.checker(row, tracker,"Row", identifier, null); //checks for row order integrity
+            tracker++; //increments tracker
+        }
+
+        lock.unlock();
+    }
+
+}
+
+class column implements Runnable {
+    private AtomicReference<Thread> spinner;
+    private spinlock lock;
+    public column(AtomicReference<Thread> spinner) {
+        this.spinner = spinner;
+        this.lock = new spinlock(spinner);
+    }
+    //vertical array checker
+    public void run(){
+        lock.lock();
+        String identifier = "Thread 2";
+        int[] column = new int[9]; //column array
+        int tracker = 1; //used for tracking row # for printing
+
+        for(int j = 0; j < 9; j++) { //assigns y-value 2d array values
+            for (int i = 0; i < 9; i++) { //assigns x-value 2d array values
+                column[i] = sudoku.arr[i][j];
+            }
+            Arrays.sort(column); //sorts 'column' in ascending order
+            sudoku.checker(column, tracker, "Column", identifier, null); //checks for column order integrity
+            tracker++; //increments tracker
+        }
+        lock.unlock();
+    }
+
+}
+
+class subgrid implements Runnable {
+    private AtomicReference<Thread> spinner;
+    private spinlock lock;
+    public subgrid(AtomicReference<Thread> spinner) {
+        this.spinner = spinner;
+        this.lock = new spinlock(spinner);
+    }
+    //quadrant array checker
+    public void run() {
+        lock.lock();
+        String identifier = "Thread 3";
+        int[] quadrant = new int[9];
+        int arrLoc = 0;
+        int tracker = 1;
+        String quadLoc = null;
+
+        //top left quadrant
+        for (int j = 0; j < 3; j++) {
+            for (int i = 0; i < 3; i++) {
+                quadrant[arrLoc] = sudoku.arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        quadLoc = "R123-C123";
+        sudoku.checker(quadrant, tracker, "Sub-Grid", identifier, quadLoc); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //top middle quadrant
+        for (int j = 0; j < 3; j++) {
+            for (int i = 3; i < 6; i++) {
+                quadrant[arrLoc] = sudoku.arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        quadLoc = "R123-C456";
+        sudoku.checker(quadrant, tracker, "Sub-Grid", identifier, quadLoc); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //top right quadrant
+        for (int j = 0; j < 3; j++) {
+            for (int i = 6; i < 9; i++) {
+                quadrant[arrLoc] = sudoku.arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        quadLoc = "R123-C789";
+        sudoku.checker(quadrant, tracker, "Sub-Grid", identifier, quadLoc); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //middle left quadrant
+        for (int j = 3; j < 6; j++) {
+            for (int i = 0; i < 3; i++) {
+                quadrant[arrLoc] = sudoku.arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        quadLoc = "R456-C123";
+        sudoku.checker(quadrant, tracker, "Sub-Grid", identifier, quadLoc); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //middle middle quadrant
+        for (int j = 3; j < 6; j++) {
+            for (int i = 3; i < 6; i++) {
+                quadrant[arrLoc] = sudoku.arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        quadLoc = "R456-C456";
+        sudoku.checker(quadrant, tracker, "Sub-Grid", identifier, quadLoc); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //middle right quadrant
+        for (int j = 3; j < 6; j++) {
+            for (int i = 6; i < 9; i++) {
+                quadrant[arrLoc] = sudoku.arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        quadLoc = "R456-C789";
+        sudoku.checker(quadrant, tracker, "Sub-Grid", identifier, quadLoc); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //bottom left quadrant
+        for (int j = 6; j < 9; j++) {
+            for (int i = 0; i < 3; i++) {
+                quadrant[arrLoc] = sudoku.arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        quadLoc = "R789-C123";
+        sudoku.checker(quadrant, tracker, "Sub-Grid", identifier, quadLoc); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //bottom middle quadrant
+        for (int j = 6; j < 9; j++) {
+            for (int i = 3; i < 6; i++) {
+                quadrant[arrLoc] = sudoku.arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        quadLoc = "R789-C456";
+        sudoku.checker(quadrant, tracker, "Sub-Grid", identifier, quadLoc); //checks for column order integrity
+        tracker++; //increments tracker
+        arrLoc = 0;
+
+        //bottom right quadrant
+        for (int j = 6; j < 9; j++) {
+            for (int i = 6; i < 9; i++) {
+                quadrant[arrLoc] = sudoku.arr[j][i];
+                arrLoc++;
+            }
+        }
+        Arrays.sort(quadrant);
+        quadLoc = "R789-C789";
+        sudoku.checker(quadrant, tracker, "Sub-Grid", identifier, quadLoc); //checks for column order integrity
+
+        lock.unlock();
+    }
+}
